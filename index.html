@@ -1,24 +1,69 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SparkAdmin</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><style>body{margin:0;background:#07070b;color:#f5f5f7;font-family:Inter,system-ui,Arial;min-height:100vh}.login{min-height:100vh;display:grid;place-items:center}.card,.panel,.stat{background:#101017;border:1px solid #272735;border-radius:20px;padding:24px}.card{width:min(420px,90%)}input,select,button{font:inherit}input,.control{width:100%;box-sizing:border-box;background:#09090e;color:#fff;border:1px solid #2c2c39;border-radius:12px;padding:12px;margin:8px 0}.primary{width:100%;border:0;border-radius:12px;padding:13px;background:linear-gradient(135deg,#8d5cff,#c15cff);color:#fff;font-weight:800;cursor:pointer}.error{color:#ff7182;margin:10px 0;min-height:20px}.hidden{display:none}.app{display:flex;min-height:100vh}.side{width:230px;padding:22px;border-right:1px solid #22222c;background:#0c0c11}.main{flex:1;padding:32px}.logo{font-weight:900;font-size:28px}.logo span{color:#9b6cff}.top{display:flex;justify-content:space-between;align-items:center}.badge{background:#231744;color:#c9adff;padding:7px 11px;border-radius:999px}.logout,.small{border:1px solid #333;background:#111118;color:#ddd;border-radius:10px;padding:9px 13px;cursor:pointer}.welcome{margin:30px 0}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.stat strong{display:block;font-size:28px;margin-top:8px}.panel{margin-top:18px;overflow:auto}.table{width:100%;border-collapse:collapse;min-width:720px}.table th,.table td{text-align:left;padding:12px 8px;border-bottom:1px solid #24242d}.muted{color:#92919d}.status{color:#8de6b5}.danger{color:#ff8c9d}.empty{text-align:center;color:#777;padding:20px}@media(max-width:700px){.side{width:170px}.main{padding:18px}.grid{grid-template-columns:1fr}}</style></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SparkAdmin</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><style>body{margin:0;background:#07070b;color:#f5f5f7;font-family:Inter,system-ui,Arial;min-height:100vh}.login{min-height:100vh;display:grid;place-items:center}.card,.panel,.stat{background:#101017;border:1px solid #272735;border-radius:20px;padding:24px}.card{width:min(420px,90%)}input,select,button{font:inherit}input,.control{width:100%;box-sizing:border-box;background:#09090e;color:#fff;border:1px solid #2c2c39;border-radius:12px;padding:12px;margin:8px 0}.primary{width:100%;border:0;border-radius:12px;padding:13px;background:linear-gradient(135deg,#8d5cff,#c15cff);color:#fff;font-weight:800;cursor:pointer}.primary:disabled{opacity:.6;cursor:wait}.error{color:#ff7182;margin:10px 0;min-height:20px}.hidden{display:none}.app{display:flex;min-height:100vh}.side{width:230px;padding:22px;border-right:1px solid #22222c;background:#0c0c11}.main{flex:1;padding:32px}.logo{font-weight:900;font-size:28px}.logo span{color:#9b6cff}.top{display:flex;justify-content:space-between;align-items:center}.badge{background:#231744;color:#c9adff;padding:7px 11px;border-radius:999px}.logout,.small{border:1px solid #333;background:#111118;color:#ddd;border-radius:10px;padding:9px 13px;cursor:pointer}.welcome{margin:30px 0}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.stat strong{display:block;font-size:28px;margin-top:8px}.panel{margin-top:18px;overflow:auto}.table{width:100%;border-collapse:collapse;min-width:720px}.table th,.table td{text-align:left;padding:12px 8px;border-bottom:1px solid #24242d}.muted{color:#92919d}.status{color:#8de6b5}.danger{color:#ff8c9d}.empty{text-align:center;color:#777;padding:20px}@media(max-width:700px){.side{width:170px}.main{padding:18px}.grid{grid-template-columns:1fr}}</style></head>
 <body>
-<section id="login" class="login"><div class="card"><div class="logo">Spark<span>Admin</span></div><p class="muted">Secure SparkAgent administration</p><label>Username</label><input id="username" autocomplete="username"><label>Passcode</label><input id="password" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()"><button id="loginBtn" class="primary" onclick="login()">Sign in</button><div id="error" class="error"></div></div></section>
+<section id="login" class="login"><div class="card"><div class="logo">Spark<span>Admin</span></div><p class="muted">Secure SparkAgent administration</p><label>Admin username</label><input id="username" autocomplete="username" placeholder="Chethan or Vijay"><label>Passcode</label><input id="password" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()"><button id="loginBtn" class="primary" onclick="login()">Sign in</button><div id="error" class="error"></div></div></section>
 <section id="app" class="app hidden"><aside class="side"><div class="logo">Spark<span>Admin</span></div><p class="muted">Dashboard</p><p class="muted">SparkAgent admin control center.</p></aside><main class="main"><div class="top"><span class="badge" id="roleBadge"></span><button class="logout" onclick="logout()">Log out</button></div><div class="welcome"><h1 id="welcome"></h1><div class="muted">Accounts, tiers, bans and login activity.</div></div><div class="grid"><div class="stat"><span class="muted">Accounts</span><strong id="userCount">0</strong></div><div class="stat"><span class="muted">Free accounts</span><strong id="freeCount">0</strong></div><div class="stat"><span class="muted">Banned</span><strong id="bannedCount">0</strong></div></div><div class="panel"><h2>Agent users</h2><table class="table"><thead><tr><th>User</th><th>Email</th><th>Tier</th><th>Status</th><th>Last login</th><th>Actions</th></tr></thead><tbody id="users"><tr><td colspan="6" class="empty">Loading...</td></tr></tbody></table></div><div class="panel"><h2>Recent login activity</h2><table class="table"><thead><tr><th>User</th><th>Login time</th><th>Browser</th></tr></thead><tbody id="activity"><tr><td colspan="3" class="empty">Loading...</td></tr></tbody></table></div></main></section>
 <script>
 const SUPABASE_URL='https://nzaelikbjumaidaombmp.supabase.co';
 const SUPABASE_KEY='sb_publishable_xI4i15jxoh44D8USeKLLKQ_daeg0gtt';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-const ADMINS={Chethan:{role:'OWNER',salt:'sparkadmin-chethan-v1',hash:''},Vijay:{role:'MANAGER',salt:'sparkadmin-vijay-v1',hash:''}};let admin=null;
+const ADMIN_EMAILS={
+  Chethan:'monsterbeast2569@gmail.com',
+  Vijay:'malluruvijaysundhar@gmail.com'
+};
+let admin=null;
 const $=id=>document.getElementById(id);
-async function sha256(t){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
-async function init(){ADMINS.Chethan.hash=await sha256('051212|'+ADMINS.Chethan.salt);ADMINS.Vijay.hash=await sha256('MalluruVijay|'+ADMINS.Vijay.salt);const saved=JSON.parse(sessionStorage.getItem('spark_admin_session')||'null');if(saved?.username&&ADMINS[saved.username]){admin=saved;showApp();refresh()}}
-async function login(){const u=$('username').value.trim(),p=$('password').value;$('error').textContent='';if(!u||!p){$('error').textContent='Enter username and passcode.';return}$('loginBtn').disabled=true;try{const k=Object.keys(ADMINS).find(x=>x.toLowerCase()===u.toLowerCase());if(!k||await sha256(p+'|'+ADMINS[k].salt)!==ADMINS[k].hash)throw Error('Invalid username or passcode.');admin={username:k,role:ADMINS[k].role};sessionStorage.setItem('spark_admin_session',JSON.stringify(admin));showApp();await refresh()}catch(e){$('error').textContent=e.message}finally{$('loginBtn').disabled=false}}
+function showError(message){$('error').textContent=message||''}
+async function init(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(session) await finishLogin(session);
+}
+async function login(){
+  const username=$('username').value.trim(),password=$('password').value;
+  showError('');
+  const key=Object.keys(ADMIN_EMAILS).find(x=>x.toLowerCase()===username.toLowerCase());
+  if(!key||!password){showError('Enter a valid admin username and passcode.');return}
+  $('loginBtn').disabled=true;
+  try{
+    const {data,error}=await sb.auth.signInWithPassword({email:ADMIN_EMAILS[key],password});
+    if(error) throw error;
+    await finishLogin(data.session);
+  }catch(e){showError(e.message||'Sign in failed.')}finally{$('loginBtn').disabled=false}
+}
+async function finishLogin(session){
+  if(!session){return}
+  try{
+    const {data:adminRow,error}=await sb.from('admins').select('user_id,role').eq('user_id',session.user.id).maybeSingle();
+    if(error) throw error;
+    if(!adminRow){await sb.auth.signOut();throw Error('This account is not registered as a SparkAdmin.');}
+    const username=Object.keys(ADMIN_EMAILS).find(x=>ADMIN_EMAILS[x].toLowerCase()===session.user.email.toLowerCase())||session.user.email;
+    admin={username,role:adminRow.role,userId:session.user.id};
+    showApp();
+    await refresh();
+  }catch(e){showError(e.message||'Admin verification failed.');}
+}
 function showApp(){$('login').classList.add('hidden');$('app').classList.remove('hidden');$('welcome').textContent=`Welcome ${admin.role==='OWNER'?'Owner':'Manager'} — ${admin.username}`;$('roleBadge').textContent=admin.role}
-async function refresh(){try{const {data:users,error:e1}=await sb.from('profiles').select('id,email,display_name,tier,banned,created_at,last_login_at').order('created_at',{ascending:false});if(e1)throw e1;const {data:logs,error:e2}=await sb.from('login_activity').select('id,user_id,logged_in_at,user_agent').order('logged_in_at',{ascending:false}).limit(100);if(e2)throw e2;render(users||[],logs||[])}catch(e){$('users').innerHTML=`<tr><td colspan="6" class="empty">${esc(e.message||'Dashboard data unavailable.')}</td></tr>`;$('activity').innerHTML='<tr><td colspan="3" class="empty">Dashboard data unavailable.</td></tr>'}}
-function render(users,logs){$('userCount').textContent=users.length;$('freeCount').textContent=users.filter(x=>(x.tier||'FREE')==='FREE').length;$('bannedCount').textContent=users.filter(x=>x.banned).length;$('users').innerHTML=users.length?users.map(x=>`<tr><td><strong>${esc(x.display_name||'User')}</strong></td><td>${esc(x.email||'—')}</td><td><select class="control" onchange="setTier('${x.id}',this.value)">${['FREE','PLUS','PRO','PREMIUM'].map(t=>`<option ${((x.tier||'FREE')===t)?'selected':''}>${t}</option>`).join('')}</select></td><td class="${x.banned?'danger':'status'}">${x.banned?'BANNED':'ACTIVE'}</td><td>${x.last_login_at?new Date(x.last_login_at).toLocaleString():'Never'}</td><td><button class="small danger" onclick="setBan('${x.id}',${!x.banned})">${x.banned?'Unban':'Ban'}</button></td></tr>`).join(''):'<tr><td colspan="6" class="empty">No accounts found.</td></tr>';$('activity').innerHTML=logs.length?logs.map(l=>`<tr><td>${esc(l.user_id||'Unknown')}</td><td>${new Date(l.logged_in_at).toLocaleString()}</td><td>${esc(l.user_agent||'—')}</td></tr>`).join(''):'<tr><td colspan="3" class="empty">No login activity recorded yet.</td></tr>'}
-async function setTier(id,tier){try{const {error}=await sb.from('profiles').update({tier}).eq('id',id);if(error)throw error;refresh()}catch(e){alert(e.message)}}
-async function setBan(id,banned){try{const {error}=await sb.from('profiles').update({banned}).eq('id',id);if(error)throw error;refresh()}catch(e){alert(e.message)}}
-function logout(){sessionStorage.removeItem('spark_admin_session');location.reload()}
+async function refresh(){
+  try{
+    const {data:users,error:e1}=await sb.from('profiles').select('id,email,display_name,tier,banned,created_at,last_login_at').order('created_at',{ascending:false});
+    if(e1) throw e1;
+    const {data:logs,error:e2}=await sb.from('login_activity').select('id,user_id,logged_in_at,user_agent').order('logged_in_at',{ascending:false}).limit(100);
+    if(e2) throw e2;
+    render(users||[],logs||[]);
+  }catch(e){
+    $('users').innerHTML=`<tr><td colspan="6" class="empty">${esc(e.message||'Dashboard data unavailable.')}</td></tr>`;
+    $('activity').innerHTML=`<tr><td colspan="3" class="empty">${esc(e.message||'Dashboard data unavailable.')}</td></tr>`;
+  }
+}
+function render(users,logs){
+  $('userCount').textContent=users.length;$('freeCount').textContent=users.filter(x=>(x.tier||'FREE')==='FREE').length;$('bannedCount').textContent=users.filter(x=>x.banned).length;
+  $('users').innerHTML=users.length?users.map(x=>`<tr><td><strong>${esc(x.display_name||'User')}</strong></td><td>${esc(x.email||'—')}</td><td><select class="control" onchange="setTier('${x.id}',this.value)">${['FREE','PLUS','PRO','PREMIUM'].map(t=>`<option ${((x.tier||'FREE')===t)?'selected':''}>${t}</option>`).join('')}</select></td><td class="${x.banned?'danger':'status'}">${x.banned?'BANNED':'ACTIVE'}</td><td>${x.last_login_at?new Date(x.last_login_at).toLocaleString():'Never'}</td><td><button class="small danger" onclick="setBan('${x.id}',${!x.banned})">${x.banned?'Unban':'Ban'}</button></td></tr>`).join(''):'<tr><td colspan="6" class="empty">No accounts found.</td></tr>';
+  $('activity').innerHTML=logs.length?logs.map(l=>`<tr><td>${esc(l.user_id||'Unknown')}</td><td>${new Date(l.logged_in_at).toLocaleString()}</td><td>${esc(l.user_agent||'—')}</td></tr>`).join(''):'<tr><td colspan="3" class="empty">No login activity recorded yet.</td></tr>';
+}
+async function setTier(id,tier){try{const {error}=await sb.from('profiles').update({tier}).eq('id',id);if(error)throw error;await refresh()}catch(e){alert(e.message)}}
+async function setBan(id,banned){try{const {error}=await sb.from('profiles').update({banned}).eq('id',id);if(error)throw error;await refresh()}catch(e){alert(e.message)}}
+async function logout(){await sb.auth.signOut();sessionStorage.clear();location.reload()}
 function esc(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 init();
 </script></body></html>
