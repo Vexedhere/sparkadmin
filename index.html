@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SparkAdmin</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,Arial;background:#07070b;color:#f5f5f7;min-height:100vh}button,input,select{font:inherit}.hidden{display:none!important}.login{min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 50% 0,#24104d 0,#0b0912 38%,#07070b 70%)}.card{width:min(430px,100%);background:#101017;border:1px solid #272735;border-radius:24px;padding:34px;box-shadow:0 25px 80px #0008}.logo{font-weight:900;font-size:30px;letter-spacing:-1px}.logo span{color:#9b6cff}.sub{color:#9b9baa;margin:7px 0 28px}.field{margin:14px 0}.field label{display:block;color:#b7b6c4;font-size:13px;margin-bottom:7px}.field input,.control{width:100%;background:#09090e;color:#fff;border:1px solid #2c2c39;border-radius:12px;padding:13px;outline:none}.field input:focus,.control:focus{border-color:#9b6cff}.primary{width:100%;border:0;border-radius:12px;padding:13px;margin-top:10px;background:linear-gradient(135deg,#8d5cff,#c15cff);color:white;font-weight:800;cursor:pointer}.error{color:#ff6b7d;font-size:13px;min-height:20px;margin-top:10px}.app{display:flex;min-height:100vh}.side{width:245px;border-right:1px solid #22222c;background:#0c0c11;padding:22px;position:fixed;inset:0 auto 0 0}.nav{margin-top:34px;color:#8e8d99;font-size:13px}.nav div{padding:11px 12px;border-radius:10px;background:#17151f;color:#fff}.main{margin-left:245px;width:calc(100% - 245px);padding:32px}.top{display:flex;justify-content:space-between;align-items:center;gap:20px}.badge{font-size:12px;padding:7px 10px;border-radius:999px;background:#231744;color:#c9adff}.logout{border:1px solid #2d2d38;background:#111118;color:#ddd;border-radius:10px;padding:9px 13px;cursor:pointer}.welcome{margin:35px 0}.welcome h1{font-size:34px;margin:0 0 8px}.muted{color:#8f8e9a}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.stat,.panel{background:#101017;border:1px solid #252530;border-radius:18px;padding:20px}.stat strong{display:block;font-size:28px;margin-top:7px}.panel{margin-top:18px}.panel h2{font-size:18px;margin:0 0 18px}.table{width:100%;border-collapse:collapse}.table th,.table td{text-align:left;padding:13px 8px;border-bottom:1px solid #24242d;font-size:14px}.table th{color:#858490;font-size:12px}.pill{display:inline-block;padding:5px 9px;border-radius:999px;background:#191923;color:#c9c8d4;font-size:12px}.actions{display:flex;gap:7px;flex-wrap:wrap}.small{border:1px solid #343440;background:#17171f;color:#eee;border-radius:8px;padding:7px 9px;cursor:pointer}.danger{border-color:#612635;color:#ff8c9d}.upgrade{background:linear-gradient(135deg,#8d5cff,#c15cff)!important;color:white!important;border:0!important}.empty{color:#777681;padding:18px 0}@media(max-width:800px){.side{width:190px}.main{margin-left:190px;width:calc(100% - 190px);padding:20px}.grid{grid-template-columns:1fr}.table{min-width:650px}.panel{overflow:auto}}
+</style>
+</head>
+<body>
+<section id="login" class="login">
+<div class="card">
+<div class="logo">Spark<span>Admin</span></div>
+<div class="sub">Secure administration console</div>
+<div class="field"><label>Username</label><input id="username" autocomplete="username" placeholder="Enter username"></div>
+<div class="field"><label>Passcode</label><input id="password" type="password" autocomplete="current-password" placeholder="Enter passcode"></div>
+<button class="primary" onclick="login()">Sign in</button>
+<div id="error" class="error"></div>
+</div>
+</section>
+<section id="app" class="app hidden">
+<aside class="side"><div class="logo">Spark<span>Admin</span></div><div class="nav"><div>Dashboard</div></div></aside>
+<main class="main">
+<div class="top"><div><span class="badge" id="roleBadge"></span></div><button class="logout" onclick="logout()">Log out</button></div>
+<div class="welcome"><h1 id="welcome"></h1><div class="muted">Manage SparkAgent accounts, tiers and access.</div></div>
+<div class="grid"><div class="stat"><span class="muted">Logged-in users</span><strong id="userCount">0</strong></div><div class="stat"><span class="muted">Free accounts</span><strong id="freeCount">0</strong></div><div class="stat"><span class="muted">Banned</span><strong id="bannedCount">0</strong></div></div>
+<div class="panel"><h2>Agent users</h2><table class="table"><thead><tr><th>User</th><th>Email</th><th>Tier</th><th>Status</th><th>Actions</th></tr></thead><tbody id="users"></tbody></table></div>
+<div class="panel"><h2>Quick actions</h2><div class="actions"><button class="small" onclick="refresh()">Refresh</button><button class="small" onclick="addDemoUser()">Add test user</button><button class="small upgrade" onclick="location.href='https://tiers.sparkagent.in.net'">Open Upgrade Tiers</button></div><p class="muted" style="font-size:12px;margin-bottom:0">The Upgrade button opens tiers.sparkagent.in.net.</p></div>
+</main></section>
+<script>
+const ADMINS={Chethan:{role:'OWNER',hash:'6350e6b1789f93cd47931f239eda4005b22c28e5e22c9e8c2b1312090951a35b'},Vijay:{role:'MANAGER',hash:'0c2ab274f16e656b30bfaa16eea4afc1dfe206a35f1e77d533797ff97c8993cb'}};
+const seed=[{id:'demo-1',user:'Demo User',email:'demo@sparkagent.in.net',tier:'FREE',status:'Active',lastLogin:new Date().toLocaleString()}];
+function getUsers(){try{return JSON.parse(localStorage.getItem('sparkadmin_users'))||seed}catch{return seed}}
+function saveUsers(x){localStorage.setItem('sparkadmin_users',JSON.stringify(x))}
+async function hash(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+async function login(){const u=username.value.trim(),p=password.value;error.textContent='';if(!ADMINS[u]){error.textContent='Invalid username or passcode';return}if(await hash(p)!==ADMINS[u].hash){error.textContent='Invalid username or passcode';return}sessionStorage.setItem('sparkadmin_session',u);showApp(u)}
+function showApp(u){loginSection=false;document.getElementById('login').classList.add('hidden');document.getElementById('app').classList.remove('hidden');welcome.textContent=`Welcome ${u === 'Chethan' ? 'Owner' : 'Manager'} — ${u}`;roleBadge.textContent=ADMINS[u].role;refresh()}
+function logout(){sessionStorage.removeItem('sparkadmin_session');location.reload()}
+function refresh(){let us=getUsers();userCount.textContent=us.length;freeCount.textContent=us.filter(x=>x.tier==='FREE').length;bannedCount.textContent=us.filter(x=>x.status==='Banned').length;users.innerHTML=us.length?us.map(x=>`<tr><td><strong>${esc(x.user)}</strong></td><td>${esc(x.email||'—')}</td><td><select class="control" style="width:auto;padding:7px 9px" onchange="tier('${x.id}',this.value)">${['FREE','PLUS','PRO','PREMIUM'].map(t=>`<option ${x.tier===t?'selected':''}>${t}</option>`).join('')}</select></td><td><span class="pill">${esc(x.status||'Active')}</span></td><td><div class="actions"><button class="small danger" onclick="ban('${x.id}')">${x.status==='Banned'?'Unban':'Ban'}</button></div></td></tr>`).join(''):'<tr><td colspan="5" class="empty">No users recorded.</td></tr>'}
+function tier(id,t){let us=getUsers();let x=us.find(a=>a.id===id);if(x){x.tier=t;saveUsers(us);refresh()}}
+function ban(id){let us=getUsers();let x=us.find(a=>a.id===id);if(x){x.status=x.status==='Banned'?'Active':'Banned';saveUsers(us);refresh()}}
+function addDemoUser(){let us=getUsers();let n=us.length+1;us.push({id:crypto.randomUUID(),user:`User ${n}`,email:`user${n}@sparkagent.in.net`,tier:'FREE',status:'Active',lastLogin:new Date().toLocaleString()});saveUsers(us);refresh()}
+function esc(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+const active=sessionStorage.getItem('sparkadmin_session');if(active&&ADMINS[active])showApp(active);
+</script>
+</body>
+</html>
