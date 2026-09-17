@@ -7,15 +7,23 @@
 const SUPABASE_URL='https://nzaelikbjumaidaombmp.supabase.co';
 const SUPABASE_KEY='sb_publishable_xI4i15jxoh44D8USeKLLKQ_daeg0gtt';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-// Only these two Supabase Auth user IDs can ever enter SparkAdmin.
 const ADMINS={
-  Chethan:{role:'OWNER',email:'monsterbeast2569@gmail.com',userId:'94f326ef-4f9b-4d4d-aca5-28dd9c195186'},
-  Vijay:{role:'MANAGER',email:'malluruvijaysundhar@gmail.com',userId:'07341f88-b481-4c81-850f-5a1f91706435'}
+  Chethan:{role:'OWNER',email:'monsterbeast2569@gmail.com'},
+  Vijay:{role:'MANAGER',email:'malluruvijaysundhar@gmail.com'}
 };
 let admin=null;
 const $=id=>document.getElementById(id);
-async function login(){const u=$('username').value.trim(),p=$('password').value;$('error').textContent='';if(!u||!p){$('error').textContent='Enter username and passcode.';return}$('loginBtn').disabled=true;try{const k=Object.keys(ADMINS).find(x=>x.toLowerCase()===u.toLowerCase());if(!k)throw Error('Invalid username or passcode.');const {data,error}=await sb.auth.signInWithPassword({email:ADMINS[k].email,password:p});if(error)throw Error('Invalid username or passcode.');if(!data.user||data.user.id!==ADMINS[k].userId)throw Error('This account is not authorized as a SparkAdmin.');const {data:row,error:ae}=await sb.from('admins').select('user_id,role').eq('user_id',data.user.id).maybeSingle();if(ae)throw ae;if(!row||row.user_id!==ADMINS[k].userId)throw Error('This account is not authorized as a SparkAdmin.');admin={username:k,role:row.role||ADMINS[k].role,userId:data.user.id};sessionStorage.setItem('spark_admin_session',JSON.stringify(admin));showApp();await refresh()}catch(e){await sb.auth.signOut();$('error').textContent=e.message||'Login failed.'}finally{$('loginBtn').disabled=false}}
-async function init(){const {data:{session}}=await sb.auth.getSession();if(!session){showLogin();return}const k=Object.keys(ADMINS).find(x=>ADMINS[x].userId===session.user.id);if(!k){await sb.auth.signOut();sessionStorage.removeItem('spark_admin_session');showLogin();return}const {data:row,error}=await sb.from('admins').select('user_id,role').eq('user_id',session.user.id).maybeSingle();if(error||!row){await sb.auth.signOut();sessionStorage.removeItem('spark_admin_session');showLogin();return}admin={username:k,role:row.role||ADMINS[k].role,userId:session.user.id};showApp();await refresh()}
+async function resolveAdmin(user){
+  if(!user?.id)return null;
+  const k=Object.keys(ADMINS).find(x=>ADMINS[x].email.toLowerCase()===(user.email||'').toLowerCase());
+  if(!k)return null;
+  const {data:row,error}=await sb.from('admins').select('user_id,role').eq('user_id',user.id).maybeSingle();
+  if(error)throw error;
+  if(!row)return null;
+  return {username:k,role:row.role||ADMINS[k].role,userId:user.id,email:user.email};
+}
+async function login(){const u=$('username').value.trim(),p=$('password').value;$('error').textContent='';if(!u||!p){$('error').textContent='Enter username and passcode.';return}$('loginBtn').disabled=true;try{const k=Object.keys(ADMINS).find(x=>x.toLowerCase()===u.toLowerCase());if(!k)throw Error('Invalid username or passcode.');const {data,error}=await sb.auth.signInWithPassword({email:ADMINS[k].email,password:p});if(error)throw Error('Invalid username or passcode.');const resolved=await resolveAdmin(data.user);if(!resolved)throw Error('Your authenticated account is not present in the SparkAdmin admin list.');admin=resolved;sessionStorage.setItem('spark_admin_session',JSON.stringify(admin));showApp();await refresh()}catch(e){await sb.auth.signOut();$('error').textContent=e.message||'Login failed.'}finally{$('loginBtn').disabled=false}}
+async function init(){const {data:{session}}=await sb.auth.getSession();if(!session){showLogin();return}try{const resolved=await resolveAdmin(session.user);if(!resolved){await sb.auth.signOut();sessionStorage.removeItem('spark_admin_session');showLogin();return}admin=resolved;showApp();await refresh()}catch(e){await sb.auth.signOut();sessionStorage.removeItem('spark_admin_session');showLogin();$('error').textContent='Admin authorization check failed: '+(e.message||'unknown error')}}
 function showLogin(){$('app').classList.add('hidden');$('login').classList.remove('hidden');$('username').value='';$('password').value='';admin=null}
 function showApp(){$('login').classList.add('hidden');$('app').classList.remove('hidden');$('welcome').textContent=`Welcome ${admin.role==='OWNER'?'Owner':'Manager'} — ${admin.username}`;$('roleBadge').textContent=admin.role}
 async function refresh(){try{const {data:users,error:e1}=await sb.from('profiles').select('id,email,display_name,tier,banned,created_at,last_login_at').order('created_at',{ascending:false});if(e1)throw e1;const {data:logs,error:e2}=await sb.from('login_activity').select('id,user_id,logged_in_at,user_agent').order('logged_in_at',{ascending:false}).limit(100);if(e2)throw e2;render(users||[],logs||[])}catch(e){$('users').innerHTML=`<tr><td colspan="6" class="empty">${esc(e.message||'Dashboard data unavailable.')}</td></tr>`;$('activity').innerHTML='<tr><td colspan="3" class="empty">Dashboard data unavailable.</td></tr>'}}
